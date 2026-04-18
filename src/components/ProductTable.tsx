@@ -20,6 +20,7 @@ interface Props {
   constants: Constants;
   onChange: (rows: Row[]) => void;
   targetCurrency?: string;
+  sourceCurrency?: string;
 }
 
 function N(v: number) {
@@ -57,7 +58,7 @@ type RateOverrideField =
   | "customsRateOverride"
   | "profitRateOverride";
 
-export function ProductTable({ rows, constants, onChange, targetCurrency }: Props) {
+export function ProductTable({ rows, constants, onChange, targetCurrency, sourceCurrency = "USD" }: Props) {
   const [copiedCol, setCopiedCol] = useState<InputField | "usdTotal" | null>(null);
   const [copiedCalcCol, setCopiedCalcCol] = useState<string | null>(null);
   const [openRatesRowId, setOpenRatesRowId] = useState<number | null>(null);
@@ -343,10 +344,10 @@ export function ProductTable({ rows, constants, onChange, targetCurrency }: Prop
               <ColActions field="itemModel" />
             </th>
             <th className="px-3 py-3 text-center font-semibold text-gray-500 whitespace-nowrap min-w-[180px] border-l border-gray-100" colSpan={2}>
-              USD Price
+              {sourceCurrency} Price
             </th>
-            <th className="group px-3 py-3 text-center font-semibold text-gray-500 whitespace-nowrap min-w-[70px]" rowSpan={2}>
-              Qty
+            <th className="group px-3 py-3 text-center font-semibold text-gray-500 whitespace-nowrap min-w-[90px]" rowSpan={2}>
+              Quantity
               <ColActions field="quantity" />
             </th>
             <th className="w-16" rowSpan={2} />
@@ -371,7 +372,7 @@ export function ProductTable({ rows, constants, onChange, targetCurrency }: Prop
               <span className="inline-flex items-center justify-center gap-0.5">
                 /unit
                 <button
-                  title="Copy USD /unit column"
+                  title={`Copy ${sourceCurrency} /unit column`}
                   onClick={() => copyColumn("priceUsd")}
                   className={cn(
                     "rounded p-0.5 transition-colors opacity-0 group-hover:opacity-100",
@@ -383,7 +384,7 @@ export function ProductTable({ rows, constants, onChange, targetCurrency }: Prop
                   <Copy size={10} />
                 </button>
                 <button
-                  title="Paste USD /unit column"
+                  title={`Paste ${sourceCurrency} /unit column`}
                   onClick={() => pasteColumn("priceUsd")}
                   className="rounded p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors opacity-0 group-hover:opacity-100"
                 >
@@ -395,7 +396,7 @@ export function ProductTable({ rows, constants, onChange, targetCurrency }: Prop
               <span className="inline-flex items-center justify-center gap-0.5">
                 total
                 <button
-                  title="Copy USD total column"
+                  title={`Copy ${sourceCurrency} total column`}
                   onClick={() => copyUsdTotalColumn()}
                   className={cn(
                     "rounded p-0.5 transition-colors opacity-0 group-hover:opacity-100",
