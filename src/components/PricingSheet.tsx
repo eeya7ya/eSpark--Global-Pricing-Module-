@@ -474,6 +474,7 @@ export function PricingSheet({
                 constants={constants}
                 onChange={setRows}
                 targetCurrency={targetCurrency}
+                sourceCurrency={sourceCurrency}
               />
             )}
           </div>
