@@ -103,6 +103,10 @@ export function PricingSheet({
             wantId != null && data.some((p) => p.id === wantId)
               ? wantId
               : data[0].id;
+          // Flip loading in the same batch as the selection so the sheet
+          // never paints its empty shell between projects-loaded and the
+          // selection effect firing.
+          setLoading(true);
           setSelectedProjectId(preferred);
         }
       }
@@ -123,6 +127,7 @@ export function PricingSheet({
     if (initialProjectId === selectedProjectId) return;
     // Only honour it when the project is in our loaded list.
     if (projects.some((p) => p.id === initialProjectId)) {
+      setLoading(true);
       setSelectedProjectId(initialProjectId);
     }
   }, [initialProjectId, projects, selectedProjectId]);
@@ -227,6 +232,13 @@ export function PricingSheet({
     }
   }, [selectedProjectId, saving, projectName, projectDate, responsiblePerson, constants, targetCurrency, rows]);
 
+  // Manual selection path: ensures loading flips true in the same render
+  // as the selection change so the sheet never paints its empty shell.
+  const handleSelectProject = useCallback((id: number | null) => {
+    if (id != null) setLoading(true);
+    setSelectedProjectId(id);
+  }, []);
+
   const handleCreateProject = useCallback(async (name: string) => {
     const res = await fetch("/api/projects", {
       method: "POST",
@@ -236,6 +248,7 @@ export function PricingSheet({
     if (res.ok) {
       const project = await res.json();
       await loadProjects();
+      setLoading(true);
       setSelectedProjectId(project.id);
     }
   }, [manufacturerId, ownerUserId, loadProjects]);
@@ -304,7 +317,7 @@ export function PricingSheet({
           <ProjectSelector
             projects={projects}
             selectedId={selectedProjectId}
-            onSelect={setSelectedProjectId}
+            onSelect={handleSelectProject}
             onCreateNew={handleCreateProject}
           />
 
