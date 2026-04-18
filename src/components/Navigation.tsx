@@ -129,10 +129,10 @@ export function Navigation() {
               {showUserMenu && (
                 <>
                   <div
-                    className="fixed inset-0 z-10"
+                    className="fixed inset-0 z-40"
                     onClick={() => setShowUserMenu(false)}
                   />
-                  <div className="absolute right-0 z-20 mt-2 w-60 overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 py-1.5 shadow-2xl shadow-black/40">
+                  <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 py-1.5 shadow-2xl shadow-black/40">
                     <div className="border-b border-gray-200 px-4 py-3">
                       <p className="text-sm font-semibold text-gray-900 truncate">
                         {user.fullName}

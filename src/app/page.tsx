@@ -20,12 +20,18 @@ interface ManufacturerWithCount {
   projectCount: number;
 }
 
+// Survives remounts so navigating back to the dashboard shows the last
+// known list instantly while a fresh fetch runs in the background.
+let manufacturersCache: ManufacturerWithCount[] | null = null;
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const isAdmin = user?.role === "admin";
 
-  const [items, setItems] = useState<ManufacturerWithCount[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<ManufacturerWithCount[]>(
+    () => manufacturersCache ?? []
+  );
+  const [loading, setLoading] = useState(manufacturersCache === null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,19 +40,21 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("all");
 
   const loadData = useCallback(async () => {
-    setLoading(true);
     setLoadError(null);
     try {
       const res = await fetch("/api/manufacturers", { cache: "no-store" });
       if (res.ok) {
         const data: ManufacturerWithCount[] = await res.json();
+        manufacturersCache = data;
         setItems(data);
       } else {
         const body = await res.json().catch(() => ({}));
+        manufacturersCache = [];
         setItems([]);
         setLoadError(body.error ?? `Failed to load manufacturers (${res.status}).`);
       }
     } catch {
+      manufacturersCache = [];
       setItems([]);
       setLoadError("Network error. Please check your connection.");
     } finally {
@@ -130,9 +138,10 @@ export default function DashboardPage() {
     [isAdmin, activeTab, items]
   );
 
-  // Wait for the auth context before deciding what to show — prevents
-  // a flash of the empty state.
-  const showSpinner = authLoading || loading;
+  // Only show the full-screen spinner when we genuinely have nothing
+  // to render yet. Subsequent refetches (after mutations or return
+  // navigation) keep the existing grid visible to avoid flicker.
+  const showSpinner = (authLoading || loading) && items.length === 0;
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 pb-16 pt-10 sm:px-6">
@@ -280,10 +289,7 @@ export default function DashboardPage() {
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {visibleItems.map((m) => (
-            <div
-              key={`${m.id}-${m.ownerUserId ?? "none"}`}
-              className="animate-fade-in"
-            >
+            <div key={`${m.id}-${m.ownerUserId ?? "none"}`}>
               <ManufacturerCard
                 id={m.id}
                 name={m.name}
